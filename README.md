@@ -13,6 +13,7 @@ The central phenomenon is narrow: an almost-sure hard constraint can make zero p
 ## Files
 
 - [`weakness_equilibrium_revised.tex`](weakness_equilibrium_revised.tex) — LaTeX source
+- [`verify_revised_counts.py`](verify_revised_counts.py) — exact-rational verifier for the 2×2 enumeration counts
 
 ## Build
 
@@ -21,6 +22,19 @@ pdflatex weakness_equilibrium_revised.tex
 ```
 
 A second `pdflatex` pass resolves cross-references.
+
+## Reproduce the enumeration counts
+
+```bash
+python3 verify_revised_counts.py
+```
+
+The script enumerates the restricted 2×2 class in exact rational arithmetic and checks:
+
+- 33,856 uniformly correct games, 336 with no exact equilibrium
+- 14,161 with increasing differences, 52 failures
+- 18,496 with ascending exact-feasible sets, 24 failures
+- 9,025 satisfying both conditions, 0 failures
 
 ## Results at a glance
 
