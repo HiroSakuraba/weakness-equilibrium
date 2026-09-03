@@ -1,0 +1,400 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{observation}[theorem]{Observation}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\Prob}{\Pr}
+\newcommand{\supp}{\operatorname{supp}}
+\newcommand{\argmax}{\operatorname*{arg\,max}}
+
+\title{Weakness Equilibrium and the Failure of Exact Correctness}
+\author{Benjamin John Schulz}
+\date{September 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We study an abstract economy in which each player first has to satisfy a binding correctness requirement and, among the strategies that satisfy it, prefers the strategy retaining the greatest measure of requirements. Under a strict-feasibility condition, equilibrium exists for any threshold $\alpha<1$; in particular, this holds for uniformly correct games. At the endpoint $\alpha=1$, however, feasibility becomes support-sensitive and equilibrium can fail. In an exhaustive exact enumeration of a restricted $2\times2$ class with one unit-mass binding requirement per player and $m_i\in\{0,1,2\}$, 33,856 games satisfy uniform correctness and 336 have no exact-correctness equilibrium. A $2\times2$ witness $G^*$ is analysed in closed form. For $\alpha\in(3/4,1)$ its unique equilibrium is $p^*=2(1-\alpha)$, $q^*=1/2$; the limit point $(0,1/2)$ remains feasible at $\alpha=1$ but ceases to be an equilibrium. Under a conditional-admissibility definition, correlation does not repair the witness. We also prove a positive endpoint theorem: finite-chain weakness games with increasing differences and ascending exact-feasible correspondences have a pure exact-correctness equilibrium. In the enumerated class, increasing differences alone leaves 52 failures, ascending feasibility alone leaves 24, while all 9,025 games satisfying both conditions have a pure equilibrium. A restricted Bayesian enumeration shows that uncertainty can restore existence by removing deviations rather than by granting slack, but no general preservation theorem is claimed. The central phenomenon is therefore narrow: an almost-sure hard constraint can make zero probability qualitatively different from arbitrarily small positive probability.
+\end{abstract}
+
+\section{Motivation}
+Many decision problems have two layers. Some conditions are treated as non-negotiable---a safety rule, a legal constraint, a promise, a specification---and only after those conditions are met does the agent compare the remaining options. The weakness razor adds a particular secondary preference: among acceptable policies, prefer the one that commits to less and therefore leaves more future requirements satisfiable \cite{bennett2023,bennett2025}.
+
+The game-theoretic question is what happens when several agents use that structure at once. The main issue turns out not to be a subtle disagreement about causal, evidential, or functional counterfactuals. It is the boundary between ``almost never wrong'' and ``never wrong.'' If an error is permitted with probability $10^{-12}$, then changing that probability slightly changes feasibility slightly. Under exact correctness, by contrast, an action with probability $10^{-100}$ is still present in the support, while the same action at probability exactly zero disappears. That disappearance can abruptly make new responses admissible for another player.
+
+This paper formalises that discontinuity. Below the exact endpoint, a standard abstract-economy argument gives existence under strict feasibility. At the endpoint, a small $2\times2$ game already has no equilibrium. The failure is not universal: when incentives and exact-feasible sets move monotonically together, a pure equilibrium exists by a Topkis--Tarski argument. The result is therefore not that certainty is intrinsically incoherent, but that support-sensitive hard constraints can interact badly with crossing incentives.
+
+The construction is motivated in part by functional-decision-theory discussions \cite{yudkowskysoares,schwarz}, but nothing in the main existence or nonexistence results depends on choosing among causal, evidential, or functional decision theories.
+
+\section{Weakness games}
+
+\begin{definition}[Weakness game]
+A weakness game is a tuple
+\[
+\Gamma=\bigl(N,(S_i)_{i\in N},(R,\mu),(E_i)_{i\in N},(r_i^0)_{i\in N},\alpha\bigr),
+\]
+where $N$ is a finite player set, each $S_i$ is a finite strategy set, $(R,\mu)$ is a finite measure space of requirements, $E_i:S\to 2^R$ is a retained-set map on $S=\prod_j S_j$, $r_i^0\in R$ is player $i$'s binding requirement, and $\alpha\in[0,1]$ is a correctness threshold.
+\end{definition}
+
+For a mixed profile $\sigma\in\prod_i\Delta(S_i)$ write
+\[
+W_i(\sigma)=\sum_{s\in S}\sigma(s)\,\mu(E_i(s)),
+\qquad
+c_i(\sigma)=\Prob_\sigma\bigl[r_i^0\in E_i(s)\bigr].
+\]
+Thus $c_i$ determines whether a mixed strategy is admissible and $W_i$ ranks admissible strategies.
+
+\begin{lemma}[Mixing]
+Let $f_\sigma(r)=\Prob_\sigma[r\in E_i(s)]$. Then
+\[
+\int_R f_\sigma\,d\mu=W_i(\sigma),
+\]
+so $W_i$ is multiaffine on $\prod_i\Delta(S_i)$ and affine in $\sigma_i$.
+\end{lemma}
+
+\begin{proof}
+Interchange the finite sum and the integral. Since $S$ is finite and $\mu(R)<\infty$, Fubini's theorem applies directly.
+\end{proof}
+
+The probabilistic extension is substantive. The union form
+\[
+\mu\!\left(\bigcup_{s\in\supp\sigma}E_i(s)\right)
+\]
+depends only on support, is maximised by enlarging support, and need not be quasiconcave. The intersection form makes mixing weakly harmful and largely collapses the analysis to pure strategies. Expected retained measure is instead affine in a player's own mixture.
+
+\begin{definition}[Weakness equilibrium]
+Let
+\[
+C_i(\sigma_{-i})=\{\sigma_i\in\Delta(S_i):c_i(\sigma_i,\sigma_{-i})\ge\alpha\}.
+\]
+A profile $\sigma^*$ is a weakness equilibrium if, for every $i$,
+\[
+\sigma_i^*\in C_i(\sigma_{-i}^*)
+\]
+and
+\[
+W_i(\sigma_i^*,\sigma_{-i}^*)\ge W_i(\sigma_i,\sigma_{-i}^*)
+\quad\text{for all }\sigma_i\in C_i(\sigma_{-i}^*).
+\]
+\end{definition}
+
+This is an abstract economy, or generalized game, rather than an ordinary normal-form game: the feasible set moves with the opponents' strategies.
+
+\begin{theorem}[Existence under strict feasibility]\label{thm:existence}
+Suppose that for every player $i$ and every $\sigma_{-i}$ there exists $s_i\in S_i$ such that
+\[
+c_i(s_i,\sigma_{-i})>\alpha.
+\]
+Then $\Gamma$ has a weakness equilibrium.
+\end{theorem}
+
+\begin{proof}
+By the mixing lemma, $W_i$ is continuous and affine in $\sigma_i$, hence quasiconcave. For fixed $\sigma_{-i}$, $C_i(\sigma_{-i})$ is the intersection of the simplex with a single affine inequality, so it is convex and compact. Continuity of $c_i$ gives a closed graph. The strict-feasibility assumption provides a local Slater point and yields lower hemicontinuity of $C_i$: any boundary-feasible strategy can be approximated, under nearby opponent profiles, by a small convex mixture with a locally strictly feasible strategy. Berge's maximum theorem therefore gives an upper-hemicontinuous best-response correspondence with nonempty compact convex values. Kakutani's fixed-point theorem applied to the product correspondence gives a fixed point \cite{debreu,berge,kakutani}.
+\end{proof}
+
+Uniform correctness---the existence for each player of one pure action that satisfies the binding requirement against every pure opponent profile---implies the hypothesis of Theorem~\ref{thm:existence} for every $\alpha<1$.
+
+\begin{remark}[Verification from three players onward]
+Define
+\[
+\phi_i(\sigma_{-i})=\max_{s_i\in S_i}c_i(s_i,\sigma_{-i}).
+\]
+Strict feasibility is equivalent to $\min_{\sigma_{-i}}\phi_i(\sigma_{-i})>\alpha$. With two players, $\sigma_{-i}$ lies in one simplex and $\phi_i$ is the maximum of finitely many affine functions, hence convex and piecewise linear. Its minimum can occur at an interior opponent mixture, so checking only pure opponent profiles is not sufficient in general, but the verification problem can be written as a linear program.
+
+With three or more players, $c_i(s_i,\sigma_{-i})$ is multiaffine in the independent opponent mixtures, and the maximum of these multiaffine functions need not be convex on the product of simplices. The two-player linear-program reduction therefore disappears in general. This is a structural change in the verification problem, not a claim about a formal complexity-class jump.
+\end{remark}
+
+\begin{remark}[Coercion appears as infeasibility]
+If opponents can force $c_i<\alpha$ for every $s_i$, then $C_i$ is empty and no weakness equilibrium exists. A scalar-payoff model can instead encode the same situation as a very bad outcome while retaining a formal equilibrium. Which representation is preferable is a modelling choice.
+\end{remark}
+
+\section{Failure at exact correctness}
+At $\alpha=1$ the strict-feasibility condition of Theorem~\ref{thm:existence} is impossible to satisfy because $c_i\le1$. A natural endpoint assumption is \emph{uniform correctness}: for every player $i$ there exists $s_i$ such that
+\[
+c_i(s_i,s_{-i})=1\qquad\text{for all pure }s_{-i}.
+\]
+
+At exact correctness the feasible pure actions depend only on the opponents' support. For $U_{-i}\subseteq S_{-i}$ define
+\[
+T_i(U_{-i})=\{s_i:r_i^0\in E_i(s_i,s_{-i})\text{ for all }s_{-i}\in U_{-i}\}.
+\]
+The map $\sigma_{-i}\mapsto\supp\sigma_{-i}$ is discontinuous when an action's probability reaches zero, and the corresponding feasible-set map need not be lower hemicontinuous. The following example shows that this is enough to destroy equilibrium.
+
+\subsection{Exhaustive search in a restricted $2\times2$ class}
+For the finite search we specialise further. Each binding requirement is normalised to unit mass, equivalently one may take counting measure on a finite requirement set with $\mu(\{r_i^0\})=1$. For each player and cell write
+\[
+m_i(s)=\mu(E_i(s)),\qquad a_i(s)=\mathbf 1[r_i^0\in E_i(s)].
+\]
+We restrict to $m_i(s)\in\{0,1,2\}$, so $a_i=1$ implies $m_i\ge1$. The five possible cell states are therefore
+\[
+(0,0),(1,0),(2,0),(1,1),(2,1).
+\]
+Across four cells and two players this gives $5^8=390{,}625$ games. Equilibrium at $\alpha=1$ was decided exactly over $\mathbb Q$. There are nine support pairs. For each pair, admissibility is determined by the support, while best-response conditions reduce to rational linear equalities or inequalities in one mixing variable per player.
+
+\begin{observation}\label{obs:enum}
+Of the 33,856 games in this restricted class satisfying uniform correctness, exactly 336 admit no $\alpha=1$ weakness equilibrium.
+\end{observation}
+
+\subsection{A $2\times2$ witness}
+Let $G^*$ be given by Table~\ref{tab:witness}, with $p=\Prob[\text{row }0]$ and $q=\Prob[\text{column }0]$.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{ccccc}
+\toprule
+cell & $m_1$ & $a_1$ & $m_2$ & $a_2$\\
+\midrule
+$(0,0)$ & 0 & 0 & 1 & 1\\
+$(0,1)$ & 2 & 1 & 0 & 0\\
+$(1,0)$ & 1 & 1 & 1 & 1\\
+$(1,1)$ & 1 & 1 & 2 & 1\\
+\bottomrule
+\end{tabular}
+\caption{The witness $G^*$.}
+\label{tab:witness}
+\end{table}
+
+Direct expansion gives
+\[
+W_1=p(1-2q)+1,
+\qquad
+W_2=q(2p-1)+2(1-p),
+\]
+\[
+c_1=1-pq,
+\qquad
+c_2=q+(1-p)(1-q).
+\]
+
+\begin{proposition}\label{prop:noexact}
+$G^*$ has no $\alpha=1$ weakness equilibrium.
+\end{proposition}
+
+\begin{proof}
+At $\alpha=1$, $c_1=1$ gives $pq=0$, while $c_2=1$ gives $p(1-q)=0$. If $p>0$, then the second equation forces $q=1$, after which $pq=0$ forces $p=0$, a contradiction. Hence any feasible profile must have $p=0$. At $p=0$, every $q$ is feasible for player 2 and $W_2=2-q$, so player 2 uniquely chooses $q=0$. But at $q=0$, every $p$ is feasible for player 1 and $W_1=p+1$, so player 1 uniquely chooses $p=1$. Thus no feasible profile is a mutual optimum.
+\end{proof}
+
+\subsection{The failure is a limit failure}
+\begin{proposition}\label{prop:path}
+For $\alpha\in(3/4,1)$ the unique equilibrium of $G^*$ is
+\[
+p^*=2(1-\alpha),\qquad q^*=\frac12.
+\]
+For $\alpha\le3/4$ the unique equilibrium is $(1/2,1/2)$.
+\end{proposition}
+
+\begin{proof}
+The slope of $W_1$ in $p$ is $1-2q$. Hence player 1 chooses the largest feasible $p$ when $q<1/2$, the smallest feasible $p$ when $q>1/2$, and is indifferent when $q=1/2$. Since $c_1=1-pq$, feasibility gives $p\le(1-\alpha)/q$ when $q>0$.
+
+The slope of $W_2$ in $q$ is $2p-1$. Hence player 2 chooses the smallest feasible $q$ when $p<1/2$, the largest feasible $q$ when $p>1/2$, and is indifferent when $p=1/2$. Since $c_2=1-p+pq$, for $p>0$ feasibility gives
+\[
+q\ge \max\!\left\{0,\frac{\alpha-1+p}{p}\right\}.
+\]
+There can be no equilibrium with $q>1/2$: player 1 would choose $p=0$, after which player 2 chooses $q=0$. Suppose instead that $q<1/2$. Player 1 then chooses the largest feasible $p$. If $p>1/2$, player 2 chooses $q=1$, a contradiction. If $p=1/2$, maximality for player 1 requires $q=2(1-\alpha)$, while feasibility for player 2 at $p=1/2$ requires $q\ge2\alpha-1$. The first relation together with $q<1/2$ implies $\alpha>3/4$, whereas the two relations together imply $\alpha\le3/4$, again a contradiction. Finally, if $0<p<1/2$, both players choose their respective feasibility boundaries, so
+\[
+pq=1-\alpha,
+\qquad
+pq=\alpha-1+p.
+\]
+Hence $p=2(1-\alpha)$ and therefore $q=1/2$, contradicting $q<1/2$. The remaining case $p=0$ makes player 2 choose $q=0$, after which player 1 chooses $p=1$. Thus every equilibrium has $q=1/2$.
+
+At $q=1/2$, player 1 is indifferent and feasibility is $p\le2(1-\alpha)$. If $p>1/2$, player 2 chooses $q=1$, so this is impossible. If $0<p<1/2$, player 2 chooses the smallest feasible $q$; requiring that lower bound to equal $1/2$ gives $p=2(1-\alpha)$, which lies below $1/2$ exactly when $\alpha>3/4$. If $p=1/2$, player 2 is indifferent and $q=1/2$ is feasible exactly when $\alpha\le3/4$. The case $p=0$ makes player 2 choose $q=0$. Hence the stated equilibria are unique.
+\end{proof}
+
+\begin{observation}[Endpoint discontinuity]\label{obs:discontinuity}
+As $\alpha\to1^-$, the equilibria converge to $(0,1/2)$ and
+\[
+c_1(0,1/2)=c_2(0,1/2)=1.
+\]
+Thus the limit is feasible at $\alpha=1$, but it is not an equilibrium. For every $p>0$, exact correctness forces player 2 to use column 0 with probability one, while at $p=0$ every mixture of player 2 is feasible. The feasible correspondence therefore loses lower hemicontinuity at the endpoint, and the equilibrium correspondence is not closed.
+\end{observation}
+
+The human point is simple. There is no qualitative difference between probabilities $10^{-6}$ and $10^{-12}$ in an ordinary continuous model. Under an almost-sure constraint, however, there can be a qualitative difference between $10^{-100}$ and zero. A positive-probability action remains in the support and every binding failure attached to it still counts. At zero it disappears, which can suddenly legalise a new response by another player. In $G^*$ that newly legal response restarts the best-response cycle.
+
+\subsection{Correlation does not repair the witness}
+The endpoint claim needs a precise notion of correlated admissibility.
+
+\begin{definition}[Correlated exact weakness equilibrium]
+Let $\rho\in\Delta(S)$ be a correlation device. For every player $i$ and every recommendation $s_i$ with positive marginal probability, let $\rho(\cdot\mid s_i)$ be the induced conditional distribution over $S_{-i}$. The recommendation $s_i$ is \emph{exactly admissible} if
+\[
+r_i^0\in E_i(s_i,s_{-i})
+\quad\text{for every }s_{-i}\in\supp\rho(\cdot\mid s_i).
+\]
+A deviation to $s_i'$ after recommendation $s_i$ is admissible if the same condition holds with $s_i'$ in place of $s_i$. A correlated exact weakness equilibrium is a $\rho$ for which every positive-probability recommendation is exactly admissible and no player has a conditionally profitable admissible deviation in expected retained measure.
+\end{definition}
+
+\begin{proposition}\label{prop:correlated}
+$G^*$ has no correlated exact weakness equilibrium.
+\end{proposition}
+
+\begin{proof}
+Joint exact correctness restricts positive-probability cells to
+\[
+\{s:a_1(s)=a_2(s)=1\}=\{(1,0),(1,1)\}.
+\]
+If column 0 is ever recommended to player 2, the conditional row is necessarily row 1. Column 1 is then also admissible and gives $m_2(1,1)=2>1=m_2(1,0)$, so the recommendation is not incentive compatible. Hence a correlated equilibrium could place mass only on $(1,1)$. But conditional on column 1, player 1 can admissibly deviate from row 1 to row 0 and increase retained measure from $1$ to $2$. Therefore no correlated exact weakness equilibrium exists.
+\end{proof}
+
+\subsection{What the failure is, and what it is not}
+The retained-measure difference functions are
+\[
+D_1(q)=1-2q,
+\qquad
+D_2(p)=2p-1.
+\]
+After relabelling player 1's rows, these have the crossing best-response pattern of matching pennies. The game is not zero-sum: $W_1+W_2=3-p-q$.
+
+The cycle alone is not the obstruction. Ordinary matching pennies has a mixed equilibrium, and Proposition~\ref{prop:path} shows that $G^*$ also has an interior equilibrium when enough slack is available. Nor is exact correctness alone sufficient for failure, as Section~\ref{sec:monotone} shows. The obstruction is the interaction: crossing incentives call for an interior mixture, while exact correctness can make the support required for that mixture inadmissible.
+
+\section{Monotone structure restores exact equilibrium}\label{sec:monotone}
+The witness suggests a natural repair. If stronger opponent actions make stronger responses both more attractive and remain feasible in an ordered way, the best-response cycle becomes monotone.
+
+Order every $S_i$ as a finite chain, and give $S_{-i}=\prod_{j\ne i}S_j$ the product order. For pure opponent profiles define the exact-feasible correspondence
+\[
+T_i(s_{-i})=\{s_i\in S_i:r_i^0\in E_i(s_i,s_{-i})\}.
+\]
+For nonempty subsets $A,B$ of a chain, write $A\le_s B$ for the strong set order: for all $a\in A$ and $b\in B$, $\min\{a,b\}\in A$ and $\max\{a,b\}\in B$.
+
+We say that exact feasibility is \emph{ascending} if
+\[
+s_{-i}\le t_{-i}\quad\Longrightarrow\quad T_i(s_{-i})\le_s T_i(t_{-i}).
+\]
+We say that $m_i(s)=\mu(E_i(s))$ has \emph{increasing differences} in $(s_i,s_{-i})$ if for $s_i'\ge s_i$ and $t_{-i}\ge s_{-i}$,
+\[
+m_i(s_i',t_{-i})-m_i(s_i,t_{-i})
+\ge
+m_i(s_i',s_{-i})-m_i(s_i,s_{-i}).
+\]
+
+\begin{theorem}[Pure exact equilibrium under monotonicity]\label{thm:monotone}
+Suppose every $S_i$ is a finite chain, every $T_i(s_{-i})$ is nonempty, exact feasibility is ascending, and every $m_i$ has increasing differences in $(s_i,s_{-i})$. Then the weakness game at $\alpha=1$ has a pure equilibrium.
+\end{theorem}
+
+\begin{proof}
+For fixed $s_{-i}$, $T_i(s_{-i})$ is a nonempty subset of a chain and hence a sublattice. On a chain, $m_i(\cdot,s_{-i})$ is automatically supermodular in the own action, while the assumed increasing-differences condition gives the required cross-monotonicity. Since the feasible correspondence is ascending in the strong set order, Topkis' monotonicity theorem implies that
+\[
+B_i(s_{-i})=\argmax_{s_i\in T_i(s_{-i})}m_i(s_i,s_{-i})
+\]
+is ascending in the strong set order \cite{topkis,milgromroberts}. In particular its least selection
+\[
+b_i(s_{-i})=\min B_i(s_{-i})
+\]
+is nondecreasing. Therefore
+\[
+b(s)=\bigl(b_i(s_{-i})\bigr)_{i\in N}
+\]
+is an isotone self-map of the finite product lattice $S$. Tarski's fixed-point theorem gives $s^*=b(s^*)$ \cite{tarski}. At this fixed point each $s_i^*$ is exactly feasible and maximises $m_i(\cdot,s_{-i}^*)$ over the exact-feasible actions. Because any exact-feasible mixed deviation against the pure profile $s_{-i}^*$ is a mixture supported on $T_i(s_{-i}^*)$, affinity of $W_i$ implies that no such mixture can beat this pure maximum. Hence $s^*$ is a pure $\alpha=1$ weakness equilibrium.
+\end{proof}
+
+The theorem separates two ingredients that the original enumeration had conflated.
+
+\begin{observation}[Enumeration of the two monotonicity conditions]\label{obs:monotonecounts}
+Within the 33,856 uniformly correct games of Observation~\ref{obs:enum}:
+\begin{itemize}
+\item 14,161 have increasing differences; 52 of these still have no exact equilibrium;
+\item 18,496 have ascending exact-feasible sets; 24 of these still have no exact equilibrium;
+\item 9,025 satisfy both conditions; every one has a pure exact equilibrium.
+\end{itemize}
+\end{observation}
+
+Thus neither monotone incentives nor monotone correctness is sufficient by itself in this search class. Their combination is sufficient by Theorem~\ref{thm:monotone}; the zero failures among the 9,025 games are a computational check of the theorem, not evidence for a conjecture.
+
+\section{Incomplete knowledge}
+We next report a deliberately restricted Bayesian experiment. Let player 1 be uninformed and player 2 have type $t\in\{A,B\}$ with prior $1/2$ \cite{harsanyi}. Under interim exact correctness, player 1 must be correct against the union of the supports used by both types of player 2, while each type of player 2 need only be correct against player 1's support. In that sense uncertainty tightens the uninformed player's admissibility constraint and relaxes nobody's.
+
+The enumeration pairs two complete-information component games while holding $(a_1,a_2,m_1)$ fixed and allowing $m_{2A}$ and $m_{2B}$ to differ. Thus the type changes player 2's retained-measure objective but not the correctness maps. Equilibria were decided exactly by the support method extended to the three mixing variables. Degenerate pairs with $m_{2A}=m_{2B}$ reproduce the complete-information verdicts.
+
+\begin{observation}[Restricted Bayesian enumeration]\label{obs:bayes}
+In this enumerated class:
+\begin{enumerate}
+\item no pairing in which both component games have an equilibrium loses equilibrium under uncertainty;
+\item among pairings with one working and one broken component game, 3,312 of 5,976, or 55.4\%, have a Bayesian equilibrium;
+\item no pairing in which both component games are broken acquires one.
+\end{enumerate}
+\end{observation}
+
+Uniform correctness explains one part of the first finding: widening the uninformed player's set of possible opponent actions cannot make all of that player's actions incorrect, because the uniformly correct action remains available. That is a feasibility statement, not by itself a general theorem that Bayesian uncertainty preserves equilibrium.
+
+In the witness, the repair mechanism is especially transparent. Requiring the uninformed player to be correct against both possible columns pins that player to the row that works against both. The deviation that previously drove the cycle disappears. Existence is restored by removing a deviation, not by granting either player additional slack.
+
+\begin{conjecture}
+If every complete-information component of a finite Bayesian weakness game lacks an $\alpha=1$ equilibrium, then the Bayesian game also lacks one.
+\end{conjecture}
+
+The conjecture is motivated only by the restricted enumeration above; no broader evidence is claimed.
+
+\section{Structure beyond two players}
+\begin{definition}[Annihilation depth]
+For player $i$, let $d_i$ be the least $|C|$ over coalitions $C\subseteq N\setminus\{i\}$ for which there exists a mixed strategy $\sigma_C$ such that
+\[
+\max_{s_i}c_i(s_i,\sigma_C,\sigma_{-C-i})<\alpha
+\]
+for every strategy profile $\sigma_{-C-i}$ of the remaining players. If no such coalition exists, set $d_i=\infty$.
+\end{definition}
+
+With two players, $d_i$ only records whether the single opponent can annihilate player $i$'s feasible set. From three players onward it grades how many agents must coordinate before no action of player $i$ can satisfy the binding requirement. Related ideas exist in the literatures on effectivity, security levels, blocking coalitions, and viability; the point here is narrower. A hard-constraint formulation exposes coalitional loss of feasibility directly, rather than representing it only as a sufficiently bad scalar outcome.
+
+A second distinction concerns rival versus non-rival requirements. If retained sets may overlap, then
+\[
+\sum_i W_i\le n\,\mu(R),
+\]
+but the sum need not be bounded by $\mu(R)$. If the relevant retained sets are required to be pairwise disjoint, then
+\[
+\sum_i W_i\le\mu(R),
+\]
+and retained measure behaves like a scarce nontransferable resource. Core questions can then be studied with tools for nontransferable-utility games; balancedness in the sense of Scarf is one natural route \cite{scarf}. We have not established the required hypotheses and make no core-nonemptiness claim.
+
+\section{Relation to existing work}
+Games with unawareness use lattices of state spaces in which players may fail to conceive of all moves \cite{heifetz,halpernrego}. That machinery describes changing awareness but does not by itself select among less or more committal policies; the weakness principle supplies one possible selector \cite{bennett2025,ord}. Viability theory studies states from which constraint-satisfying trajectories can be maintained indefinitely and is therefore close in spirit to weakness over time \cite{aubin}. Program equilibrium gives a formal semantics to one part of the functional-decision-theory neighbourhood \cite{tennenholtz}. Empowerment is an established scalar measure of an agent's available influence and can be read as a related option-preservation proxy \cite{klyubin}. Correlated equilibrium is a standard way to enlarge equilibrium possibilities in cyclic games \cite{aumann}; Proposition~\ref{prop:correlated} shows that the particular exact-correctness obstruction in $G^*$ survives that enlargement under the conditional-admissibility definition used here.
+
+More generally, weakness games belong to the theory of abstract economies and generalized games with strategy-dependent feasible sets. The contribution here is not a new general existence framework, but a specific endpoint pathology and a simple monotone class in which the pathology disappears.
+
+\section{Limitations}
+The exhaustive search is exhaustive only for the $2\times2$ encoding specified in Section 3: $m_i\in\{0,1,2\}$, one unit-mass binding requirement per player, and the resulting five cell states. The numerical frequencies should not be treated as generic frequencies over weakness games.
+
+The Bayesian experiment is narrower still: types alter $m_2$ while $(a_1,a_2,m_1)$ remain fixed. Observation~\ref{obs:bayes} therefore does not justify a general statement that incomplete information preserves or restores equilibrium.
+
+The correlated-equilibrium result uses conditional exact admissibility after each positive-probability recommendation. Other ways of imposing correctness on a correlation device could define different objects.
+
+Two modelling assumptions also do real work. First, $\mu$ is exogenous even though opponents may partly determine which future requirements arise. Second, the same $\mu$ is used across players. That postpones rather than solves interpersonal comparability of retained measure. Under adversarially chosen requirement weights the criterion moves toward a maximin ordering over retained measure; it remains nontrivial, but its interpretation changes.
+
+The claim we defend is therefore limited. Decision rules that impose almost-sure hard constraints can lose equilibrium when strategic feasibility depends discontinuously on support. Slack regularises the witness, and monotone incentives together with monotone feasible sets restore a pure exact equilibrium. Exact correctness is not inherently inconsistent; it is a potentially discontinuous modelling idealisation whose strategic consequences have to be checked rather than assumed benign.
+
+\section*{Reproducibility}
+All enumerations were carried out in exact rational arithmetic. The original enumeration used exact-rational scripts for the endpoint search, witness verification, correlation test, monotonicity filters, and Bayesian experiment. The accompanying revised-count verifier independently reproduces the $33{,}856/336$, $14{,}161/52$, $18{,}496/24$, and $9{,}025/0$ counts. The ascending-feasibility-only figure is obtained by applying the same exact support test while dropping the increasing-differences filter.
+
+\begin{thebibliography}{19}
+\bibitem{aubin} Aubin, J.-P. \emph{Viability Theory}. Birkh\"auser, 1991.
+\bibitem{aumann} Aumann, R. J. Subjectivity and correlation in randomized strategies. \emph{Journal of Mathematical Economics} 1 (1974), 67.
+\bibitem{bennett2023} Bennett, M. T. The optimal choice of hypothesis is the weakest, not the shortest. In \emph{Artificial General Intelligence}, AGI 2023.
+\bibitem{bennett2025} Bennett, M. T. Optimal policy is weakest policy. LNAI 16057, 43--48.
+\bibitem{berge} Berge, C. \emph{Topological Spaces}. Oliver and Boyd, 1963.
+\bibitem{debreu} Debreu, G. A social equilibrium existence theorem. \emph{Proceedings of the National Academy of Sciences} 38 (1952), 886.
+\bibitem{halpernrego} Halpern, J. Y. and R\^ego, L. C. Extensive games with possibly unaware players. \emph{Mathematical Social Sciences} 70 (2014), 42.
+\bibitem{harsanyi} Harsanyi, J. C. Games with incomplete information played by Bayesian players, I--III. \emph{Management Science} 14 (1967--68).
+\bibitem{heifetz} Heifetz, A., Meier, M. and Schipper, B. C. Interactive unawareness. \emph{Journal of Economic Theory} 130 (2006), 78.
+\bibitem{kakutani} Kakutani, S. A generalization of Brouwer's fixed point theorem. \emph{Duke Mathematical Journal} 8 (1941), 457.
+\bibitem{klyubin} Klyubin, A. S., Polani, D. and Nehaniv, C. L. All else being equal be empowered. In \emph{Advances in Artificial Life}, ECAL 2005.
+\bibitem{milgromroberts} Milgrom, P. and Roberts, J. Rationalizability, learning, and equilibrium in games with strategic complementarities. \emph{Econometrica} 58 (1990), 1255.
+\bibitem{ord} Ord, T. Inference, interpolation and extrapolation. arXiv:2409.05513.
+\bibitem{scarf} Scarf, H. E. The core of an $N$ person game. \emph{Econometrica} 35 (1967), 50.
+\bibitem{schwarz} Schwarz, W. On functional decision theory. Online note, 2018.
+\bibitem{tarski} Tarski, A. A lattice-theoretical fixpoint theorem and its applications. \emph{Pacific Journal of Mathematics} 5 (1955), 285.
+\bibitem{tennenholtz} Tennenholtz, M. Program equilibrium. \emph{Games and Economic Behavior} 49 (2004), 363.
+\bibitem{topkis} Topkis, D. M. Equilibrium points in nonzero-sum $n$-person submodular games. \emph{SIAM Journal on Control and Optimization} 17 (1979), 773.
+\bibitem{yudkowskysoares} Yudkowsky, E. and Soares, N. Functional decision theory: a new theory of instrumental rationality. arXiv:1710.05060.
+\end{thebibliography}
+
+\end{document}
