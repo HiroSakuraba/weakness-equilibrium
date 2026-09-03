@@ -1,0 +1,452 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs}
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{observation}[theorem]{Observation}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\Prob}{\Pr}
+\newcommand{\supp}{\operatorname{supp}}
+\newcommand{\argmax}{\operatorname*{arg\,max}}
+\newcommand{\V}{\mathcal V}
+\newcommand{\R}{\mathcal R}
+
+\title{Weakest Viable Continuations:\\Dynamic Weakness in Sequential Games}
+\author{Benjamin John Schulz}
+\date{September 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The weakness principle ranks acceptable policies by how little they unnecessarily commit, or equivalently by how many further requirements they leave satisfiable. Existing weakness games formalise this idea statically. We develop a first dynamic version for finite sequential games. In the baseline model each terminal continuation retains a measurable set of requirements, while a designated subset is binding. A player first rejects continuations that violate the binding requirements and then prefers the admissible continuation retaining greater measure. We define subgame-perfect weakness by backward recursion and prove pure existence in finite deterministic perfect-information games under recursive viability. Timing can therefore repair a simultaneous exact-correctness failure: sequentialising the $2\times2$ witness from the companion static paper restores a pure solution in either move order. We then test the dynamic principle in coordination, punishment, disclosure, self-binding, irreversible investment, adversarial robustness, and public goods. In a repeated Prisoner's Dilemma calculation, weakness selects the shortest punishment sufficient to deter defection; with payoffs $(T,R,P,S)=(5,3,1,0)$ and discount factor $\delta>1/2$, the minimal punishment length is the least $k$ satisfying $\delta^{k+1}\le 2\delta-1$. In disclosure problems, weakness selects minimal sufficient disclosure under a monotone privacy measure. Two negative results constrain the interpretation: locally maximising option count can reject temporary commitments that create more future freedom, and unweighted counting is vulnerable to syntactic option inflation. We therefore distinguish existential, strategic, and robust viability and impose measure-preserving recoding as a modelling requirement. The resulting principle is not ``keep every option open.'' It is: satisfy what must be satisfied, and beyond that do not close doors unless closing them is necessary to keep the relevant future genuinely viable.
+\end{abstract}
+
+\section{Motivation}
+
+Many decisions are naturally two-layered. Some conditions are non-negotiable: a safety invariant, a promise, a legal constraint, a protocol, a minimum performance specification. Only among the continuations satisfying those conditions does the agent compare how much else remains possible. The weakness principle developed by Michael Timothy Bennett gives this second comparison a distinctive direction: prefer policies that make fewer unnecessary commitments and therefore remain compatible with more future requirements \cite{bennett2023,bennett2025}.
+
+The companion static paper formalises this idea as an abstract economy. Each player first satisfies a correctness threshold and then maximises retained requirement measure. It establishes existence below exact correctness under strict feasibility, identifies a support discontinuity at the endpoint, gives a $2\times2$ exact-correctness witness with no equilibrium, and proves a positive monotonicity theorem for a finite ordered class \cite{schulzstatic}. Those results are static. Their motivation, however, is difficult to interpret without time. A policy is ``less committal'' principally because it leaves more later demands, plans, repairs, or adaptations available.
+
+The purpose of this paper is to make that temporal reading explicit without pretending that the static theorems automatically extend. The first question is elementary but necessary:
+\begin{quote}
+If requirements concern the future, what exactly is the dynamic object that weakness should preserve?
+\end{quote}
+A naive answer is ``the number of options left after the next move.'' That answer fails. Waiting can preserve nominal options past the point at which they remain achievable; training can reduce freedom today while creating much more freedom later; a temporary commitment can make a partner willing to invest and thereby enlarge the reachable future. The dynamic object must therefore be a \emph{viable continuation set}, not an action count.
+
+A second question is strategic. In simultaneous games, exact correctness can make the distinction between probability $10^{-100}$ and probability zero discontinuous, because support changes. In sequential games, timing can instead remove the cycle that required mixing. This paper shows both phenomena in small examples.
+
+The claim is deliberately limited. We do not present a general theory of stochastic games, imperfect information, or dynamically generated requirement measures. We give a baseline extensive-form model, a finite perfect-information existence theorem, several exact propositions, and stress tests that identify what a more complete theory would need.
+
+\section{Static weakness as the starting point}
+
+The static framework associates to each outcome a set of retained requirements. A binding requirement must be retained; among strategies satisfying it, a player prefers greater retained measure. In mixed play, exact correctness is support-sensitive: every positive-probability outcome must satisfy the binding requirement. This is the source of the endpoint pathology in the companion paper \cite{schulzstatic}.
+
+For dynamic work, three ideas from the static formulation are retained.
+\begin{enumerate}[label=(\roman*)]
+\item \textbf{Priority of constraints.} Binding requirements are feasibility conditions rather than ordinary payoff terms.
+\item \textbf{Secondary weakness ordering.} Admissible continuations are ranked by retained requirement measure.
+\item \textbf{No claim that the binding layer is morally correct.} Weakness compares ways of satisfying a specification; it does not choose the specification itself.
+\end{enumerate}
+
+What changes is the object being ranked. A stage action is not enough. The relevant object is a continuation through a game tree, and in the plan-sensitive extension it is an entire continuation policy.
+
+\section{A finite path-based dynamic model}
+
+We begin with the smallest dynamic object for which backward induction is meaningful.
+
+\begin{definition}[Finite path-based dynamic weakness game]
+A finite path-based dynamic weakness game consists of:
+\begin{enumerate}[label=(\alph*)]
+\item a finite rooted game tree with histories $H$, terminal histories $Z\subset H$, finite action sets $A(h)$ at nonterminal histories, and a mover $\iota(h)\in N$ at every nonterminal history;
+\item for each player $i$, a finite measure space of requirements $(R_i,\mu_i)$;
+\item for each player $i$, a binding set $B_i\subseteq R_i$;
+\item for each player $i$, a terminal retained-set map $E_i:Z\to 2^{R_i}$.
+\end{enumerate}
+For terminal history $z$, player $i$ regards $z$ as \emph{admissible} when
+\[
+B_i\subseteq E_i(z),
+\]
+and assigns it weakness score
+\[
+w_i(z)=\mu_i(E_i(z)).
+\]
+\end{definition}
+
+The terminal retained set should be read semantically: $r\in E_i(z)$ means that, after the sequence of actions represented by $z$, requirement $r$ remains satisfiable. It need not mean that $r$ is currently satisfied. This distinction is what allows the model to represent option value rather than only terminal utility.
+
+\subsection{Recursive viability}
+
+A dynamic solution must respect future players' own weakness choices. We therefore solve subgames backward.
+
+\begin{definition}[Recursive weakness continuation]
+At a terminal history $z$, the unique continuation is $z$ itself. Suppose recursively that at every immediate successor $ha$ there is at least one subgame-perfect weakness continuation. Choose one such continuation for each successor and write $z_a$ for its terminal outcome.
+
+If $i=\iota(h)$, action $a$ is \emph{admissible relative to these continuations} when
+\[
+B_i\subseteq E_i(z_a).
+\]
+Among admissible actions, player $i$ chooses one maximising $w_i(z_a)$. The resulting strategy choice at $h$, together with the already selected continuation strategies below every successor, is a recursive weakness continuation at $h$.
+\end{definition}
+
+Because a child subgame can have several weakness solutions, equilibrium selection below a node can matter to the current mover. We do not assume a unique continuation. Existence requires only that a compatible selection can be made.
+
+\begin{definition}[Subgame-perfect weakness solution]
+A pure strategy profile is a \emph{subgame-perfect weakness solution} if its continuation from every history is a recursive weakness continuation in the sense above. Thus binding feasibility and retained-measure optimality are required after off-path histories as well as on the realised path.
+\end{definition}
+
+\begin{definition}[Recursive viability]
+A finite path-based dynamic weakness game is \emph{recursively viable} if, at every nonterminal history $h$ with mover $i$, there exists at least one immediate successor $ha$ and at least one subgame-perfect weakness continuation of the subgame beginning at $ha$ whose terminal outcome $z$ satisfies
+\[
+B_i\subseteq E_i(z).
+\]
+\end{definition}
+
+\begin{theorem}[Pure subgame-perfect weakness under recursive viability]\label{thm:backward}
+Every finite deterministic perfect-information path-based dynamic weakness game that is recursively viable has a pure subgame-perfect weakness solution.
+\end{theorem}
+
+\begin{proof}
+Proceed by backward induction on the height of a history. At a terminal history there is nothing to choose. Assume every strict successor subgame has at least one pure subgame-perfect weakness continuation. At a nonterminal history $h$ with mover $i$, select one weakness continuation in each child subgame. Recursive viability guarantees that the selections can be made so that at least one child continuation is admissible for $i$. Since $A(h)$ is finite, the set of admissible selected child outcomes is finite and nonempty, so at least one maximises $w_i$. Choose an action leading to such an outcome and retain the selected subgame-perfect continuations below all children. This gives sequentially optimal play at $h$ subject to the binding requirement. Repeating the construction to the root yields a pure strategy profile that satisfies the same condition in every subgame.
+\end{proof}
+
+\begin{remark}
+Theorem~\ref{thm:backward} is an extensive-form existence statement, not a dynamic version of the static Kakutani theorem. Its force comes from perfect information and finite backward recursion. Once simultaneous moves, imperfect information, chance, or plan-sensitive off-path commitments are admitted, the static support pathology can return and new existence arguments are needed.
+\end{remark}
+
+\section{Timing can repair the static witness}
+
+The companion paper's witness $G^*$ is useful precisely because its simultaneous exact-correctness game has no equilibrium. Let rows belong to player 1 and columns to player 2. Each cell lists retained measure $m_i$ and the indicator $a_i$ that the binding requirement is retained:
+\begin{center}
+\begin{tabular}{ccccc}
+\toprule
+cell & $m_1$ & $a_1$ & $m_2$ & $a_2$\\
+\midrule
+$(0,0)$ & 0 & 0 & 1 & 1\\
+$(0,1)$ & 2 & 1 & 0 & 0\\
+$(1,0)$ & 1 & 1 & 1 & 1\\
+$(1,1)$ & 1 & 1 & 2 & 1\\
+\bottomrule
+\end{tabular}
+\end{center}
+In simultaneous play, exact correctness forces conditions that restart the best-response cycle and no equilibrium exists \cite{schulzstatic}.
+
+\begin{proposition}[Sequentialisation of $G^*$]\label{prop:gstar-seq}
+If player 1 moves first and player 2 observes, the sequential exact weakness game has the pure subgame-perfect outcome $(1,1)$. If player 2 moves first and player 1 observes, it has the pure subgame-perfect outcome $(1,0)$.
+\end{proposition}
+
+\begin{proof}
+Suppose player 1 moves first. After row 0, player 2 can satisfy her binding requirement only with column 0, producing $(0,0)$, which violates player 1's binding requirement. Row 0 is therefore not viable for player 1. After row 1, both columns are correct for player 2 and column 1 yields retained measure $2>1$, so player 2 chooses column 1. The outcome is $(1,1)$, which is correct for both players.
+
+Now suppose player 2 moves first. After column 0, player 1 must choose row 1 because $(0,0)$ is incorrect for player 1; the resulting outcome is $(1,0)$ and is correct for player 2. After column 1, player 1 can choose either row, and row 0 yields retained measure $2>1$, producing $(0,1)$, which violates player 2's binding requirement. Thus column 1 is not viable for player 2. Player 2 chooses column 0 and the outcome is $(1,0)$.
+\end{proof}
+
+This is a useful negative result about naive extension. The static nonexistence theorem is not simply inherited by an extensive-form representation of the same cells. Timing changes which deviations must be simultaneously supported and can break the cycle that required an interior mixture.
+
+\section{Exactness in coordination games}
+
+Sequentialisation can repair a cycle, but exactness remains support-sensitive when mixing is present. A simple Stag Hunt encoding shows the distinction.
+
+Let $H$ denote Hare and $S$ Stag. The binding requirement is ``do not hunt Stag when the other player hunts Hare.'' For either player use retained measure
+\begin{center}
+\begin{tabular}{c|cc}
+ & other $H$ & other $S$\\
+\hline
+$H$ & 3 & 3\\
+$S$ & 0 (incorrect) & 4
+\end{tabular}
+\end{center}
+If a player uses Stag with probability $p$ and the opponent uses Stag with probability $q$, then
+\[
+c=1-p(1-q),
+\qquad
+W=3+p(4q-3).
+\]
+
+\begin{proposition}[Slack branch in the Stag Hunt encoding]\label{prop:stag}
+At exact correctness, $(H,H)$ and $(S,S)$ are pure weakness equilibria and there is no nondegenerate symmetric mixed equilibrium. For $\alpha\in(13/16,1)$ there is a symmetric constrained mixed equilibrium branch
+\[
+p^*(\alpha)=\frac{1+\sqrt{4\alpha-3}}{2},
+\]
+which satisfies $p^*(\alpha)\to1$ as $\alpha\to1^-$. Thus the mixed branch collapses onto the surviving pure equilibrium $(S,S)$ rather than disappearing as in $G^*$.
+\end{proposition}
+
+\begin{proof}
+At $\alpha=1$, feasibility requires $p(1-q)=0$. If the opponent assigns positive probability to Hare, Stag is inadmissible, so a nondegenerate interior mixture cannot be a best response. Both pure coordination profiles are feasible and optimal against themselves under the stated retained measures.
+
+For $\alpha<1$, feasibility requires
+\[
+p(1-q)\le1-\alpha.
+\]
+When $q>3/4$, $W$ is increasing in $p$, so an interior constrained best response uses the largest feasible $p$, namely
+\[
+p=\frac{1-\alpha}{1-q}.
+\]
+On a symmetric branch $p=q$, hence
+\[
+p(1-p)=1-\alpha.
+\]
+The root above $1/2$ is the displayed expression. It exceeds $3/4$ exactly when $\alpha>13/16$, which is the region in which the assumed positive slope is self-consistent. The limit at $\alpha=1$ is $p=1$.
+\end{proof}
+
+The lesson is narrower than ``exactness destroys mixing.'' Exactness destroys mixtures whose support contains a binding failure. Whether equilibrium itself disappears depends on whether a pure fixed point remains.
+
+\subsection{Chicken and an infeasible adversarial specification}
+The distinction can be sharpened with two small tests. In Chicken, let $S$ mean Straight and $W$ Swerve, make $(S,S)$ the only incorrect cell, and use retained measures $4$ for $(S,W)$, $1$ for $(W,S)$, and $2$ for $(W,W)$ from the relevant player's perspective. Exact correctness removes interior independent mixing whenever the opponent puts positive probability on Straight, but the two asymmetric pure profiles $(S,W)$ and $(W,S)$ survive. Crossing incentives therefore do not by themselves imply witness-style nonexistence.
+
+Rock--Paper--Scissors with the binding specification ``never lose'' behaves differently. Against each pure action there is a strictly preferred safe response, generating the cycle Rock $\to$ Paper $\to$ Scissors $\to$ Rock, while no action is safe against full support. There is no exact weakness equilibrium. This is not a counterexample to the perfect-information theorem and is not analogous to the uniformly correct $G^*$ witness: the hard specifications themselves are mutually incompatible with the adversarial environment. Nonexistence can therefore diagnose either an equilibrium pathology or an impossible specification, and the model must distinguish the two.
+
+\section{Plan-sensitive weakness}
+
+The path-based model is not enough for commitments such as Grim Trigger. Two strategies can generate the same cooperative path but differ radically in what they promise to do off path. If weakness is meant to rank policies by commitment, the retained object must sometimes depend on the continuation \emph{plan}, not only the realised terminal history.
+
+\begin{definition}[Plan-sensitive retained set]
+For a history $h$ and continuation strategy profile $s|_h$, let
+\[
+E_i(h,s|_h)\subseteq R_i
+\]
+denote the requirements compatible with adopting that continuation plan at $h$. The plan is admissible for player $i$ when $B_i\subseteq E_i(h,s|_h)$, and its weakness score is
+\[
+W_i(h,s|_h)=\mu_i(E_i(h,s|_h)).
+\]
+\end{definition}
+
+This formulation captures promises, punishment rules, disclosure policies, access restrictions, and other commitments whose significance is not exhausted by the equilibrium path. It also removes the automatic force of Theorem~\ref{thm:backward}: the ranking of a current move can depend on an entire contingent plan. The following examples therefore analyse restricted policy families rather than claiming a general existence theorem.
+
+\section{Minimum sufficient punishment}
+
+Consider the infinitely repeated Prisoner's Dilemma with stage payoffs
+\[
+T=5,\qquad R=3,\qquad P=1,\qquad S=0,
+\]
+and common discount factor $\delta\in(0,1)$. Consider the family $\pi_k$ of symmetric policies that cooperate on path, punish a unilateral defection by $k$ rounds of mutual defection, and then return to cooperation. Let $k=\infty$ denote permanent punishment.
+
+Take the binding requirement to be incentive compatibility of on-path cooperation. Among policies satisfying it, suppose retained measure is strictly decreasing in punishment length: longer punishment rules out more future cooperative requirements and is therefore more committal.
+
+Cooperation forever gives
+\[
+V_C=\frac{3}{1-\delta}.
+\]
+A one-shot deviation followed by $k$ punishment rounds and then cooperation gives
+\[
+V_D(k)=5+\sum_{t=1}^{k}\delta^t+\delta^{k+1}\frac{3}{1-\delta}.
+\]
+
+\begin{proposition}[Minimum sufficient punishment]\label{prop:punishment}
+For $\delta>1/2$, cooperation under $\pi_k$ is incentive compatible if and only if
+\[
+\delta^{k+1}\le2\delta-1.
+\]
+If retained measure decreases strictly with $k$, weakness selects
+\[
+k^*(\delta)=\min\{k\in\mathbb N_0:\delta^{k+1}\le2\delta-1\}.
+\]
+At $\delta=1/2$, no finite $k$ suffices, while permanent punishment makes cooperation and deviation equal in discounted value.
+\end{proposition}
+
+\begin{proof}
+The deterrence condition is $V_C\ge V_D(k)$. Multiplying by $1-\delta$ and simplifying gives
+\[
+3\ge5(1-\delta)+\delta(1-\delta^k)+3\delta^{k+1},
+\]
+which is equivalent to
+\[
+\delta^{k+1}\le2\delta-1.
+\]
+For $\delta>1/2$ the right side is positive and sufficiently large $k$ satisfies the inequality. Since all larger $k$ are more committal by assumption, the weakness ordering chooses the least sufficient $k$. At $\delta=1/2$ the right side is zero, so no finite $k$ works; the limit $k\to\infty$ gives equality.
+\end{proof}
+
+For example, $\delta=.9$ gives $k^*=2$: one punishment round leaves deviation slightly profitable, while two deter it. At $\delta=.6$, $k^*=3$. If $\delta<1/2$, even permanent punishment in this family cannot deter the initial defection. The principle is therefore not ``be forgiving.'' It is \emph{punish exactly enough to make the desired constraint viable, and no more}.
+
+\section{Minimum sufficient disclosure}
+
+The same structure appears without repeated play. Let $X$ be a finite set of private facts. A disclosure policy chooses $D\subseteq X$ to reveal. Let $\mathcal S\subseteq2^X$ be the family of disclosures sufficient for a binding task, and assume sufficiency is upward closed:
+\[
+D\in\mathcal S,\ D\subseteq D'\quad\Longrightarrow\quad D'\in\mathcal S.
+\]
+Let private-information weights be $\nu(x)>0$. Define retained privacy measure
+\[
+W(D)=\sum_{x\in X\setminus D}\nu(x).
+\]
+
+\begin{proposition}[Minimal sufficient disclosure]\label{prop:disclosure}
+A weakness-optimal disclosure is exactly a sufficient disclosure of minimum revealed weight
+\[
+\sum_{x\in D}\nu(x).
+\]
+In particular, if there is a unique inclusion-minimal sufficient disclosure $D^*$, weakness selects $D^*$.
+\end{proposition}
+
+\begin{proof}
+The total weight $\sum_{x\in X}\nu(x)$ is fixed, so maximising retained privacy measure is equivalent to minimising revealed weight. If $D^*$ is the unique inclusion-minimal sufficient set and all weights are positive, every proper sufficient superset has strictly greater revealed weight and therefore strictly smaller retained measure.
+\end{proof}
+
+This is the same logic as Proposition~\ref{prop:punishment}: disclose enough to accomplish the binding task, but do not disclose additional information merely because doing so is permitted. It is closely related in spirit to least privilege and data minimisation, though those doctrines are not assumed by the formal result.
+
+\section{Necessary commitment can enlarge future freedom}
+
+Weakness should not be confused with locally avoiding commitment. Three examples make this precise.
+
+\begin{example}[Self-binding]
+An agent has a binding requirement not to spend an emergency fund during the next month and knows that an unrestricted future self will spend it. Leaving the account open preserves more immediate actions but does not preserve the binding requirement under the intended continuation behaviour. A temporary lock removes the tempting action and can therefore be the weaker \emph{viable} policy: it imposes the minimum commitment needed to keep the higher-priority requirement satisfiable.
+\end{example}
+
+\begin{example}[Training]
+At date 0 an agent can remain flexible or enter a two-year training program. Remaining flexible leaves five career requirements achievable forever. Training temporarily leaves only one immediate path but, if completed, makes twenty career requirements achievable. A rule that maximises the next state's option count chooses $5>1$ and rejects training. A continuation-based retained set compares the eventual viable sets and chooses training when $20>5$.
+\end{example}
+
+\begin{example}[Credible investment commitment]
+Two firms can undertake a project only if one accepts a limited commitment not to exit during the build period. Without the commitment, the partner rationally refuses to invest and a large family of downstream project requirements is unreachable. The commitment removes an immediate option---early exit---but can increase the set of future requirements that are strategically achievable.
+\end{example}
+
+\begin{proposition}[Failure of myopic option maximisation]\label{prop:myopic}
+For every positive one-step advantage $M>0$, there exists a finite dynamic decision problem in which an action retaining $M$ more immediate options leads to strictly fewer terminally viable requirements than an alternative action. Hence no rule based only on the cardinality or measure of the next-step option set can represent dynamic weakness in general.
+\end{proposition}
+
+\begin{proof}
+Construct two actions $a$ and $b$. Let $a$ lead immediately to a state with retained measure $M+1$ and then irreversibly terminate with retained measure $1$. Let $b$ lead immediately to a state with retained measure $1$ and then deterministically to a terminal state with retained measure $M+2$. The one-step rule chooses $a$, while terminal viable weakness chooses $b$.
+\end{proof}
+
+The correct slogan is therefore not ``avoid commitment.'' It is ``avoid unnecessary commitment.'' A commitment required to preserve a larger viable future belongs on the feasible side of the comparison.
+
+\section{Deadlines and procrastination}
+
+A related test is delay. Suppose an agent must choose project $A$ or $B$ by a deadline. If waiting preserves both projects without cost, risk, or lost preparation time, weakness correctly prefers waiting: deciding earlier would unnecessarily foreclose one branch. If project $A$ requires preparation that must begin before the deadline, however, waiting eventually removes $A$ from the viable set even if it remains a nominal label in the action menu.
+
+This example distinguishes \emph{availability} from \emph{viability}. Dynamic weakness should count a requirement only while there remains an admissible continuation capable of satisfying it. A menu entry that can no longer be implemented is not retained freedom.
+
+\section{Existential, strategic, and robust viability}
+
+The phrase ``still satisfiable'' hides a quantifier. In a controlled environment, existential reachability may be appropriate. In a strategic or adversarial environment, it may be dangerously weak.
+
+Let $h$ be a history and $r$ a future requirement. Schematically, three notions are:
+\begin{align*}
+r\in\V_i^{\exists}(h)
+&\iff \exists\text{ continuation profile }s\text{ that satisfies }r,\\
+r\in\V_i^{\mathrm{strat}}(h)
+&\iff \exists s_i\text{ such that }r\text{ is satisfied against the specified equilibrium/response class},\\
+r\in\V_i^{\mathrm{rob}}(h)
+&\iff \exists s_i\ \forall s_{-i}\in\mathcal A_{-i},\ r\text{ is satisfied}.
+\end{align*}
+Here $\mathcal A_{-i}$ is a modelled class of opponent or disturbance strategies.
+
+\begin{example}[Open versus locked system]
+An open system nominally supports 100 future tasks but an adversary can destroy 90 of them; a restricted design supports only 30, all robustly. Existential counting gives $100>30$. Robust viability gives $10<30$. The ranking reverses solely because the quantifier over the environment changes.
+\end{example}
+
+No single quantifier is universally correct. The modelling choice should correspond to what the agent controls and what the environment is allowed to do. This is the dynamic analogue of choosing the requirement measure: it is part of the semantics, not a theorem supplied by weakness itself.
+
+\section{Recoding and fake option inflation}
+
+Retained measure is meaningless if a modeller can increase it by renaming one requirement many times. Suppose one genuine requirement ``retain blue'' is replaced by ten thousand syntactic copies. Naive counting multiplies its value by ten thousand without changing the world.
+
+The natural safeguard is measure-preserving refinement.
+
+\begin{definition}[Measure-preserving requirement refinement]
+A refinement of $(R,\mu)$ is a requirement space $(R',\mu')$ with a surjection $\phi:R'\to R$ such that
+\[
+\mu'(\phi^{-1}(A))=\mu(A)
+\]
+for every measurable $A\subseteq R$. A retained set $E\subseteq R$ is represented after refinement by $E'=\phi^{-1}(E)$.
+\end{definition}
+
+\begin{proposition}[Refinement invariance]\label{prop:refinement}
+Retained-measure weakness is invariant under measure-preserving requirement refinement:
+\[
+\mu'(E')=\mu(E).
+\]
+\end{proposition}
+
+\begin{proof}
+Apply the defining condition of the refinement to $A=E$.
+\end{proof}
+
+The proposition is elementary, but the modelling lesson is not. Counting measure is acceptable only when the atoms have a defensible semantic interpretation. If arbitrary syntactic splitting is possible, the weights must split with the requirement. Dynamic applications make this issue more severe because future requirements can be generated, merged, or re-described over time.
+
+\section{Public goods and equilibrium selection}
+
+Weakness does not solve every coordination problem. Consider a two-player public project. If both contribute, each retains measure $4$; if neither contributes, each retains measure $3$; a lone contributor retains only $1$ while the noncontributor retains $3$. With an appropriate binding specification, both $(C,C)$ and $(K,K)$ can be weakness equilibria. The framework identifies what each player should do given the other's continuation, but it does not automatically choose the socially better fixed point.
+
+This limitation should be explicit. Weakness is not, by itself, a bargaining protocol, convention-selection rule, mechanism-design theorem, or social welfare ordering over equilibria. Institutions that create assurance, common knowledge, transfers, or focal points remain relevant.
+
+The same distinction applies to the static paper. Weakness is inside each player's admissible best response. It does not supply a separate social ranking of all equilibria unless an additional selection functional is defined.
+
+\section{Bad binding requirements}
+
+A final stress test concerns the first layer rather than the second. Suppose the binding requirement itself is destructive. Weakness can still prefer a policy that causes less collateral restriction while satisfying it, but if every satisfactory policy destroys something important, the weakness ranking does not question the requirement's authority.
+
+Thus dynamic weakness is not a moral theory and not a complete alignment theory. It answers:
+\begin{quote}
+Given what must be satisfied, which satisfactory continuation needlessly forecloses the least?
+\end{quote}
+It does not answer:
+\begin{quote}
+What ought to be binding in the first place?
+\end{quote}
+Any application to autonomous systems, law, institutions, or governance therefore needs a separate account of how binding requirements are chosen, revised, or challenged.
+
+\section{Relation to viability theory and dynamic programming}
+
+The language of viable continuations is deliberately close to viability theory, which studies states from which constraints can continue to be satisfied under admissible evolution \cite{aubin}. The present model adds a secondary ranking among viable continuations by retained requirement measure. In deterministic perfect-information games, Theorem~\ref{thm:backward} has the form of dynamic programming: solve child subgames, discard continuations violating the mover's binding constraints, and choose a retained-measure maximiser among what remains \cite{bellman,osbornerubinstein}.
+
+The difference from ordinary scalar dynamic programming is conceptual rather than computational. A low scalar payoff and an inadmissible continuation are not the same object. Weakness keeps a feasibility boundary explicit and only then applies a secondary ordering. This is also why nonexistence can be informative: it can report that interacting hard specifications are mutually incompatible rather than hiding the conflict inside a sufficiently bad number.
+
+Bennett's weakest-policy principle provides the motivation for ranking policies by compatibility with additional requirements \cite{bennett2023,bennett2025}. The present paper does not claim that the exact viability constructions above are Bennett's formalism. They are one game-theoretic development of the same minimum-unnecessary-commitment idea.
+
+\section{Open mathematical problems}
+
+The baseline theory leaves several natural problems.
+
+\paragraph{1. Imperfect information.}
+At an information set, correctness could be required ex ante, interim after the player's information, or ex post at every history in support. These generate different feasible correspondences.
+
+\paragraph{2. Chance and mixed behavioural strategies.}
+Under almost-sure correctness, an event of arbitrarily small positive probability can remain binding while the same event at probability zero disappears. The support discontinuity from the static paper should therefore reappear in behavioural strategy spaces, but timing may either amplify or remove it depending on the tree.
+
+\paragraph{3. Plan-sensitive existence.}
+When $E_i(h,s|_h)$ depends on the whole continuation policy, backward induction need not reduce the problem to a local action score. Conditions analogous to monotone feasibility and increasing differences may restore existence.
+
+\paragraph{4. Endogenous requirement measures.}
+Future events partly determine which requirements arise. A fixed exogenous $\mu_i$ is therefore only a first approximation. One possibility is to let $\mu_i$ be a measure over future demands generated by an environment model, which would also reduce arbitrary option inflation.
+
+\paragraph{5. Dynamic annihilation depth.}
+The static notion of how many opponents can jointly empty a player's feasible set becomes history-dependent. A dynamic definition must specify what the coalition observes, whether its strategy is credible, and whether annihilation means immediate infeasibility or eventual loss of viability. There is no reason to expect a unique extension.
+
+\paragraph{6. Equilibrium selection.}
+When several subgame-perfect weakness solutions survive, an additional principle may be wanted. Aggregate retained measure, egalitarian retained measure, bargaining solutions, or institution-specific selection rules are possibilities, but none follows from individual weakness alone.
+
+\section{Conclusion}
+
+The dynamic tests change the interpretation of weakness in a useful way. ``Keep as many options open as possible'' is too crude. It rewards procrastination when nominal options have ceased to be achievable, rejects temporary investments that create future capability, ignores strategic responses that make open options illusory, and can be manipulated by syntactic duplication.
+
+A more defensible principle is:
+\begin{quote}
+\emph{Among continuation policies that satisfy the binding requirements, prefer those that preserve the greatest measure of future requirements that remain genuinely viable under the relevant dynamics and strategic environment.}
+\end{quote}
+
+For finite deterministic perfect-information games with path-based retained sets, recursive viability is enough for a pure subgame-perfect weakness solution. Timing can therefore repair a static exact-correctness failure. In restricted plan families, the same principle yields minimum sufficient punishment and minimum sufficient disclosure. Necessary commitment is not an exception to weakness: a commitment that keeps a larger future viable is part of the solution rather than an avoidable restriction.
+
+The recurring pattern is simple. Do what has to be done. Beyond that, do not close doors unless closing them is necessary to keep the important doors genuinely open.
+
+\begin{thebibliography}{9}
+\bibitem{aubin} Aubin, J.-P. \emph{Viability Theory}. Birkh\"auser, 1991.
+\bibitem{bellman} Bellman, R. \emph{Dynamic Programming}. Princeton University Press, 1957.
+\bibitem{bennett2023} Bennett, Michael Timothy. The optimal choice of hypothesis is the weakest, not the shortest. In \emph{Artificial General Intelligence}, AGI 2023.
+\bibitem{bennett2025} Bennett, Michael Timothy. Optimal policy is weakest policy. Lecture Notes in Artificial Intelligence 16057, 43--48.
+\bibitem{fudenbergtirole} Fudenberg, D. and Tirole, J. \emph{Game Theory}. MIT Press, 1991.
+\bibitem{osbornerubinstein} Osborne, M. J. and Rubinstein, A. \emph{A Course in Game Theory}. MIT Press, 1994.
+\bibitem{schulzstatic} Schulz, B. J. \emph{Weakness Equilibrium and the Failure of Exact Correctness}. Manuscript, September 2026.
+\end{thebibliography}
+
+\end{document}
