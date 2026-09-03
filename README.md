@@ -1,45 +1,46 @@
-# Weakness Equilibrium and the Failure of Exact Correctness
+# Weakness games
 
-Source for the September 2026 paper by Benjamin John Schulz.
+Companion papers by Benjamin John Schulz, September 2026.
 
 **Repository:** https://github.com/HiroSakuraba/weakness-equilibrium
 
-## Abstract
+1. *Weakness Equilibrium and the Failure of Exact Correctness* (static)
+2. *Weakest Viable Continuations: Dynamic Weakness in Sequential Games* (dynamic)
 
-We study an abstract economy in which each player first has to satisfy a binding correctness requirement and, among the strategies that satisfy it, prefers the strategy retaining the greatest measure of requirements. Under a strict-feasibility condition, equilibrium exists for any threshold α < 1; in particular, this holds for uniformly correct games. At the endpoint α = 1, however, feasibility becomes support-sensitive and equilibrium can fail.
-
-The central phenomenon is narrow: an almost-sure hard constraint can make zero probability qualitatively different from arbitrarily small positive probability.
+The static paper studies simultaneous weakness games: meet a binding correctness requirement, then maximise retained requirement measure. Exact correctness can fail to have an equilibrium. The dynamic paper ranks viable continuations in sequential games and proves pure subgame-perfect existence under recursive viability in finite deterministic perfect-information trees.
 
 ## Files
 
-- [`weakness_equilibrium_revised.tex`](weakness_equilibrium_revised.tex) — LaTeX source
-- [`verify_revised_counts.py`](verify_revised_counts.py) — exact-rational verifier for the 2×2 enumeration counts
+- [`weakness_equilibrium_revised.tex`](weakness_equilibrium_revised.tex) — static paper
+- [`weakest_viable_continuations.tex`](weakest_viable_continuations.tex) — dynamic companion
+- [`verify_revised_counts.py`](verify_revised_counts.py) — exact-rational verifier for the static 2×2 enumeration
+- [`verify_dynamic_weakness_examples.py`](verify_dynamic_weakness_examples.py) — checks sequential \(G^*\), the Stag Hunt branch, punishment lengths, and a disclosure toy
 
 ## Build
 
 ```bash
 pdflatex weakness_equilibrium_revised.tex
+pdflatex weakest_viable_continuations.tex
 ```
 
 A second `pdflatex` pass resolves cross-references.
 
-## Reproduce the enumeration counts
+## Reproduce the checks
 
 ```bash
 python3 verify_revised_counts.py
+python3 verify_dynamic_weakness_examples.py
 ```
 
-The script enumerates the restricted 2×2 class in exact rational arithmetic and checks:
+Static enumeration targets:
 
 - 33,856 uniformly correct games, 336 with no exact equilibrium
 - 14,161 with increasing differences, 52 failures
 - 18,496 with ascending exact-feasible sets, 24 failures
 - 9,025 satisfying both conditions, 0 failures
 
-## Results at a glance
+Dynamic example targets:
 
-- Existence for every α < 1 under strict feasibility (Theorem 4).
-- In a restricted 2×2 class: 33,856 uniformly correct games, 336 with no exact-correctness equilibrium.
-- Witness game G*: unique equilibrium p* = 2(1-α), q* = 1/2 for α ∈ (3/4, 1); the limit (0, 1/2) is feasible at α = 1 but is not an equilibrium.
-- Correlation under conditional exact admissibility does not repair G*.
-- Finite-chain games with increasing differences and ascending exact-feasible correspondences have a pure exact equilibrium (Theorem 13).
+- sequential \(G^*\): player 1 first gives (1,1); player 2 first gives (1,0)
+- Stag Hunt slack branch collapses to (S,S) as \(\alpha \to 1^-\)
+- repeated PD with \((T,R,P,S)=(5,3,1,0)\): \(k^*(0.9)=2\), \(k^*(0.6)=3\)
